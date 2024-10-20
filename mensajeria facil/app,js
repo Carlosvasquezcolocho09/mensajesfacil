@@ -1,0 +1,56 @@
+ let peer;
+        let conn;
+
+        function generateId() {
+            return Math.floor(100000 + Math.random() * 900000);
+        }
+
+        function initializePeer() {
+            const peerId = generateId();
+            peer = new Peer(peerId.toString());
+            
+            peer.on('open', (id) => {
+                document.getElementById('myId').textContent = id;
+                console.log('Mi ID de peer es: ' + id);
+            });
+
+            peer.on('connection', (connection) => {
+                conn = connection;
+                setupConnection();
+            });
+        }
+
+        function connectToPeer() {
+            const connectToId = document.getElementById('connectToId').value;
+            conn = peer.connect(connectToId);
+            setupConnection();
+        }
+
+        function setupConnection() {
+            conn.on('open', () => {
+                console.log('Conectado al peer');
+                addMessage('Sistema: Conectado al otro usuario');
+            });
+
+            conn.on('data', (data) => {
+                addMessage('Otro: ' + data);
+            });
+        }
+
+        function sendMessage() {
+            const message = document.getElementById('messageInput').value;
+            if (conn && message) {
+                conn.send(message);
+                addMessage('Tú: ' + message);
+                document.getElementById('messageInput').value = '';
+            }
+        }
+
+        function addMessage(message) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML += message + '<br>';
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Inicializar el peer al cargar la página
+        initializePeer();
